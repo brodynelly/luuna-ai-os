@@ -4,7 +4,7 @@ param()
 $ErrorActionPreference = 'Stop'
 $suiteRoot = Split-Path -Parent $PSScriptRoot
 $checkoutsRoot = Join-Path $suiteRoot 'sources'
-$repositories = @('luuna', 'luuna-atlas', 'luuna-beacon', 'luuna-missions')
+$repositories = @('luuna', 'luuna-atlas', 'luuna-beacon', 'luuna-missions', 'luuna-roots')
 
 if (!(Get-Command git -ErrorAction SilentlyContinue)) { throw 'Git is required.' }
 if (!(Get-Command bun -ErrorAction SilentlyContinue)) { throw 'Bun is required.' }
@@ -35,3 +35,22 @@ $installer = Join-Path $checkoutsRoot 'luuna\scripts\install-cli.ps1'
 if (!(Test-Path -LiteralPath $installer)) { throw 'Luuna CLI installer is missing from its checkout.' }
 & $installer -ComponentsRoot $checkoutsRoot
 if (!$?) { throw 'Luuna CLI installer failed.' }
+
+$rootsCheckout = Join-Path $checkoutsRoot 'luuna-roots'
+$rootsPackagePath = Join-Path $rootsCheckout 'package.json'
+$rootsEntry = Join-Path $rootsCheckout 'src\index.ts'
+if (!(Test-Path -LiteralPath $rootsPackagePath) -or !(Test-Path -LiteralPath $rootsEntry)) {
+    throw 'Luuna Roots checkout is missing its CLI entry.'
+}
+$rootsPackage = Get-Content -LiteralPath $rootsPackagePath -Raw | ConvertFrom-Json
+if ($rootsPackage.name -ne '@luuna/roots-cli' -or !$rootsPackage.bin.PSObject.Properties['luuna-roots']) {
+    throw 'Luuna Roots checkout does not expose the expected CLI.'
+}
+& bun install --frozen-lockfile --ignore-scripts --cwd $rootsCheckout
+if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed for Luuna Roots.' }
+$installDirectory = Join-Path $env:LOCALAPPDATA 'Luuna\bin'
+if (!(Test-Path -LiteralPath $installDirectory)) { throw 'Luuna CLI launcher directory was not created.' }
+$rootsLauncher = "@echo off`r`nbun `"$rootsEntry`" %*`r`n"
+Set-Content -LiteralPath (Join-Path $installDirectory 'luuna-roots.cmd') -Value $rootsLauncher -Encoding Ascii
+Set-Content -LiteralPath (Join-Path $installDirectory 'lrt.cmd') -Value "@echo off`r`n`"%~dp0luuna-roots.cmd`" %*`r`n" -Encoding Ascii
+Write-Output 'Installed Luuna Roots launchers: luuna-roots, lrt.'

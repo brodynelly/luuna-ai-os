@@ -16,3 +16,6 @@
 [submodule "sources/luuna-documentation"]
 	path = sources/luuna-documentation
 	url = https://github.com/brodynelly/luuna-documentation.git
+[submodule "sources/luuna-roots"]
+	path = sources/luuna-roots
+	url = https://github.com/brodynelly/luuna-roots.git
