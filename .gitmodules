@@ -1,0 +1,18 @@
+[submodule "sources/luuna"]
+	path = sources/luuna
+	url = https://github.com/brodynelly/luuna.git
+[submodule "sources/luuna-atlas"]
+	path = sources/luuna-atlas
+	url = https://github.com/brodynelly/luuna-atlas.git
+[submodule "sources/luuna-beacon"]
+	path = sources/luuna-beacon
+	url = https://github.com/brodynelly/luuna-beacon.git
+[submodule "sources/luuna-missions"]
+	path = sources/luuna-missions
+	url = https://github.com/brodynelly/luuna-missions.git
+[submodule "sources/luuna-ai"]
+	path = sources/luuna-ai
+	url = https://github.com/brodynelly/luuna-ai.git
+[submodule "sources/luuna-documentation"]
+	path = sources/luuna-documentation
+	url = https://github.com/brodynelly/luuna-documentation.git

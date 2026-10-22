@@ -1,6 +1,6 @@
 # Luuna AI OS
 
-The distribution and architecture hub for the Luuna suite. Each component remains an independent repository with its own history, license, release, and CLI. This repository records the suite contract and provides a source installation path; it does not copy component code or claim that unpublished npm packages can be installed.
+The distribution and architecture hub for the Luuna suite. Each component remains an independent repository with its own history, license, release, and CLI. This repository pins the existing apps and tools as Git submodules under `sources/` and provides a source installation path; it does not claim that unpublished npm packages can be installed.
 
 | Product | Responsibility | Repository | Current delivery |
 | --- | --- | --- | --- |
@@ -21,7 +21,7 @@ cd luuna-ai-os
 .\scripts\install-cli.ps1
 ```
 
-The script clones only missing sibling checkouts, preserves existing checkouts, and calls Luuna's maintained [CLI installer](https://github.com/brodynelly/luuna/blob/main/docs/CLI-INSTALL.md). It installs `luuna`/`lu`, `lat`, `lbc`, and `lms` launchers. It does not install the desktop applications, initialize project stores, publish packages, or update existing repositories. A new terminal picks up the PATH change.
+The script initializes missing pinned CLI submodules, refuses divergent or dirty component checkouts, and calls Luuna's maintained [CLI installer](https://github.com/brodynelly/luuna/blob/main/docs/CLI-INSTALL.md). It installs `luuna`/`lu`, `lat`, `lbc`, and `lms` launchers. It does not install the desktop applications, initialize project stores, or publish packages. A new terminal picks up the PATH change. To get all six source repositories without installing CLIs, use `git submodule update --init`.
 
 ## Package plan
 

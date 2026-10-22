@@ -6,7 +6,7 @@ This repository is the suite entry point, not a source-code monorepo. Luuna and 
 
 ## Current installation
 
-`scripts/install-cli.ps1` uses the private Luuna checkout's maintained installer and the three public component source checkouts. Its current command names are `luuna`/`lu`, `lat`, `lbc`, and `lms`. The component repositories currently mark their packages private and use Bun TypeScript entry points. They are not npm releases. The Luuna runtime is separate from the standalone component CLIs.
+`scripts/install-cli.ps1` uses the pinned Luuna checkout's maintained installer and the three component source checkouts in `sources/`. Its current command names are `luuna`/`lu`, `lat`, `lbc`, and `lms`. The component repositories currently mark their packages private and use Bun TypeScript entry points. They are not npm releases. The Luuna runtime is separate from the standalone component CLIs. The other pinned sources are application and documentation code, not extra npm CLIs.
 
 ## npm release sequence
 
