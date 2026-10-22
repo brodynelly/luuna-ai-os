@@ -25,7 +25,7 @@ The script initializes missing pinned CLI submodules, refuses divergent or dirty
 
 ## Package plan
 
-The desired public CLI package names are `@luuna-ai-os/atlas`, `@luuna-ai-os/beacon`, `@luuna-ai-os/missions`, and a dispatcher package `@luuna-ai-os/cli`. These names are **reserved as a plan, not published packages**. The npm account or organization named `luuna-ai-os` must be controlled before any of them can be published. A GitHub repository name does not confer npm scope ownership. See [PACKAGING.md](docs/PACKAGING.md) for release gates and the distinction between CLIs and native applications.
+The desired public CLI package names are `@luuna-ai-os/atlas`, `@luuna-ai-os/beacon`, `@luuna-ai-os/missions`, and a dispatcher package `@luuna-ai-os/cli`. The intended one-command CLI install is **`npm install -g @luuna-ai-os/cli`**, after that package actually exists. These names are **a plan, not published packages**. The npm account or organization named `luuna-ai-os` must be controlled before any of them can be published. A GitHub repository name does not confer npm scope ownership. See [PACKAGING.md](docs/PACKAGING.md) for release gates and the distinction between CLIs and native applications.
 
 ## Roots candidate
 
