@@ -1,3 +1,7 @@
+# Private developer source install (Windows). This is NOT the public installer.
+# It requires private Luuna repository access and Bun 1.4.3. It also installs the private runtime's
+# `luuna`/`lu` launchers. The public native installer is scripts/install.sh (macOS and Linux only).
+# Windows is not supported by the public installer.
 [CmdletBinding()]
 param()
 

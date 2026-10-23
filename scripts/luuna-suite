@@ -1,0 +1,109 @@
+#!/bin/sh
+# luuna-suite: public dispatcher for the Luuna suite CLIs (POSIX sh).
+#
+#   luuna-suite <atlas|beacon|missions|roots> [args...]  run that component's CLI from this install
+#   luuna-suite version                                 print the suite version and install receipt
+#   luuna-suite doctor                                  report how each public name resolves on PATH
+#
+# Deliberately not named `luuna` or `lu`: those belong to the private Luuna runtime, which this
+# dispatcher never shadows, links, or invokes.
+set -eu
+
+PUBLIC_NAMES="luuna-suite luuna-atlas lat luuna-beacon lbc luuna-missions lms luuna-roots lrt"
+PRIVATE_NAMES="luuna lu"
+
+usage() {
+  cat <<'USAGE'
+Usage: luuna-suite <command> [args...]
+
+Commands:
+  atlas [args]     Run luuna-atlas (verified expertise and project memory)
+  beacon [args]    Run luuna-beacon (versioned prompts)
+  missions [args]  Run luuna-missions (tickets, dependencies, plans)
+  roots [args]     Run luuna-roots (project intent and goal graph)
+  version          Print the installed suite version and receipt
+  doctor           Report PATH resolution of the public commands and of luuna/lu (read-only)
+  help             Show this help
+USAGE
+}
+
+# Resolve this script's real directory without readlink -f (absent on older macOS).
+self=$0
+case "$self" in */*) ;; *) self=$(command -v -- "$self") || { echo "luuna-suite: cannot locate itself" >&2; exit 1; } ;; esac
+hops=0
+while [ -L "$self" ]; do
+  hops=$((hops + 1)); [ "$hops" -le 40 ] || { echo "luuna-suite: symlink loop" >&2; exit 1; }
+  target=$(readlink "$self")
+  case "$target" in /*) self=$target ;; *) self=${self%/*}/$target ;; esac
+done
+bin_dir=$(cd "${self%/*}" && pwd -P)
+
+# Installed layout: <home>/versions/<version>/bin/luuna-suite
+suite_version=""; suite_home=""
+case "$bin_dir" in
+  */versions/*/bin)
+    _v=${bin_dir%/bin}; suite_version=${_v##*/}; suite_home=${_v%/versions/*} ;;
+esac
+
+# resolve_real PATH: print the physical path of PATH after following symlinks.
+resolve_real() {
+  _p=$1 _h=0
+  while [ -L "$_p" ]; do
+    _h=$((_h + 1)); [ "$_h" -le 40 ] || break
+    _t=$(readlink "$_p")
+    case "$_t" in /*) _p=$_t ;; *) _p=${_p%/*}/$_t ;; esac
+  done
+  if [ -d "${_p%/*}" ]; then printf '%s/%s\n' "$(cd "${_p%/*}" && pwd -P)" "${_p##*/}"; else printf '%s\n' "$_p"; fi
+}
+
+run_component() { # PRIMARY ARGS...
+  _exe="$bin_dir/$1"; shift
+  [ -x "$_exe" ] && [ -f "$_exe" ] || { echo "luuna-suite: ${_exe##*/} is not installed next to this dispatcher ($bin_dir)" >&2; exit 127; }
+  exec "$_exe" "$@"
+}
+
+doctor() {
+  echo "luuna-suite doctor (read-only)"
+  if [ -n "$suite_home" ]; then echo "suite home: $suite_home (version $suite_version)"; else echo "suite home: not an installed layout ($bin_dir)"; fi
+  for _n in $PUBLIC_NAMES $PRIVATE_NAMES; do
+    if _p=$(command -v -- "$_n" 2>/dev/null) && [ -n "$_p" ]; then
+      case "$_p" in /*) ;; *) echo "$_n: $_p (shell builtin or alias)"; continue ;; esac
+      _r=$(resolve_real "$_p")
+      if [ -n "$suite_home" ]; then
+        case "$_r" in "$suite_home"/*) _where="suite" ;; *) _where="outside suite (private runtime or other)" ;; esac
+      else
+        _where="unknown (dispatcher not installed)"
+      fi
+      echo "$_n: $_p -> $_r [$_where]"
+    else
+      case " $PRIVATE_NAMES " in
+        *" $_n "*) echo "$_n: not found (expected unless the private Luuna runtime is installed)" ;;
+        *) echo "$_n: not found" ;;
+      esac
+    fi
+  done
+  echo "note: luuna and lu are never installed by the public installer"
+}
+
+version() {
+  if [ -z "$suite_version" ]; then echo "luuna-suite (not installed; running from $bin_dir)"; return 0; fi
+  echo "luuna-suite $suite_version"
+  if [ -f "$suite_home/receipt.tsv" ]; then
+    sed 1d "$suite_home/receipt.tsv"
+  else
+    echo "receipt: missing ($suite_home/receipt.tsv)"
+  fi
+}
+
+[ $# -gt 0 ] || { usage >&2; exit 2; }
+cmd=$1; shift
+case "$cmd" in
+  atlas) run_component luuna-atlas "$@" ;;
+  beacon) run_component luuna-beacon "$@" ;;
+  missions) run_component luuna-missions "$@" ;;
+  roots) run_component luuna-roots "$@" ;;
+  version|--version) version ;;
+  doctor) doctor ;;
+  help|-h|--help) usage ;;
+  *) echo "luuna-suite: unknown command: $cmd" >&2; usage >&2; exit 2 ;;
+esac

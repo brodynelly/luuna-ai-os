@@ -1,0 +1,51 @@
+name: distribution-tests
+
+# Offline, dependency-free tests for the native installer, manifests, dispatcher and ADW wrapper.
+# Read-only: no secrets, no publish, release, tag or registry steps.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          submodules: false
+          persist-credentials: false
+      - name: Syntax check
+        run: |
+          sh -n scripts/install.sh
+          sh -n scripts/luuna-suite
+          sh -n scripts/lib/manifest.sh
+          sh -n scripts/adw-component.sh
+          for f in tests/*.sh; do sh -n "$f" || exit 1; done
+      - name: Test suite
+        run: sh tests/run.sh
+      - name: Test suite under dash
+        if: runner.os == 'Linux'
+        run: TEST_SHELL=dash dash tests/run.sh
+      - name: Manifests are valid and append-only
+        run: |
+          if git rev-parse --verify --quiet origin/main >/dev/null; then
+            sh tests/check-manifests.sh --base origin/main
+          else
+            sh tests/check-manifests.sh
+          fi
+      - name: Unpublished version fails clearly
+        run: |
+          sh scripts/install.sh --help >/dev/null
+          if sh scripts/install.sh --version 0.0.0; then echo "expected failure" >&2; exit 1; fi
+      - name: Submodule pins unchanged
+        run: test -z "$(git status --porcelain sources)"
